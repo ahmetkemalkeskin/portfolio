@@ -16,6 +16,9 @@ export const Route = createRootRoute({
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
     ],
+    scripts: [
+      { src: 'https://identity.netlify.com/v1/netlify-identity-widget.js' },
+    ],
   }),
   shellComponent: RootDocument,
 })
@@ -33,6 +36,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </main>
         <BackToTop />
         <Scripts />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.on("init", function(user) {
+                if (!user) {
+                  window.netlifyIdentity.on("login", function() {
+                    document.location.href = "/admin/";
+                  });
+                }
+              });
+            }
+          `
+        }} />
       </body>
     </html>
   )
