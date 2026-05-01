@@ -1,0 +1,100 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+site_url: "/"
+display_url: "/"
+
+collections:
+  - name: "about"
+    label: "About"
+    files:
+      - label: "Main About"
+        name: "main_about"
+        file: "content/about/main.md"
+        fields:
+          - { label: "Name", name: "name", widget: "string" }
+          - { label: "Title", name: "title", widget: "string", required: false }
+          - { label: "Email", name: "email", widget: "string", required: false }
+          - { label: "Location", name: "location", widget: "string", required: false }
+          - { label: "Languages", name: "languages", widget: "string", required: false }
+          - { label: "Profile Image", name: "profileImage", widget: "image", required: false }
+          - { label: "CV File URL", name: "cvFile", widget: "string", required: false }
+          - { label: "Bio", name: "bio", widget: "text", required: false }
+          - { label: "Content", name: "body", widget: "markdown", required: false }
+
+  - name: "projects"
+    label: "Projects"
+    folder: "content/projects"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "text" }
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+        field: { label: "Tag", name: "tag", widget: "string" }
+      - { label: "Image", name: "image", widget: "image", required: false }
+      - { label: "Cover Image", name: "coverImage", widget: "image", required: false }
+      - label: "Gallery Images"
+        name: "gallery"
+        widget: "list"
+        required: false
+        field: { label: "Image", name: "image", widget: "image" }
+      - { label: "YouTube URL", name: "youtubeUrl", widget: "string", required: false }
+      - { label: "Category", name: "category", widget: "string", required: false }
+      - { label: "Featured", name: "featured", widget: "boolean", default: true, required: false }
+      - { label: "Order", name: "order", widget: "number", value_type: "int", required: false, default: 1 }
+      - { label: "Content", name: "body", widget: "markdown", required: false }
+
+  - name: "experience"
+    label: "Experience"
+    folder: "content/experience"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Date", name: "date", widget: "string" }
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Company", name: "company", widget: "string", required: false }
+      - { label: "Description", name: "description", widget: "text", required: false }
+      - { label: "Image", name: "image", widget: "image", required: false }
+      - { label: "Order", name: "order", widget: "number", value_type: "int", required: false, default: 1 }
+      - { label: "Content", name: "body", widget: "markdown", required: false }
+
+  - name: "works"
+    label: "Works"
+    folder: "content/works"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        options: ["3D Models", "Game Screenshots", "Videos"]
+      - { label: "Image", name: "image", widget: "image", required: false }
+      - { label: "YouTube URL", name: "youtubeUrl", widget: "string", required: false }
+      - { label: "Description", name: "description", widget: "text", required: false }
+      - { label: "Order", name: "order", widget: "number", value_type: "int", required: false, default: 1 }
+      - { label: "Content", name: "body", widget: "markdown", required: false }
+
+  - name: "settings"
+    label: "Site Settings"
+    files:
+      - label: "Main Settings"
+        name: "site_settings"
+        file: "content/settings/site.md"
+        fields:
+          - { label: "Site Name", name: "siteName", widget: "string", required: false }
+          - { label: "Site Title", name: "siteTitle", widget: "string", required: false }
+          - { label: "Email", name: "email", widget: "string", required: false }
+          - { label: "Phone", name: "phone", widget: "string", required: false }
+          - { label: "GitHub", name: "github", widget: "string", required: false }
+          - { label: "YouTube", name: "youtube", widget: "string", required: false }
+          - { label: "Instagram", name: "instagram", widget: "string", required: false }
+          - { label: "LinkedIn", name: "linkedin", widget: "string", required: false }
+          - { label: "Maps Embed URL", name: "mapsEmbed", widget: "string", required: false }

@@ -1,0 +1,14 @@
+[build]
+  command = "vite build"
+  publish = "dist/client"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 3000
+  port = 8888
+
+# Allow Netlify Identity endpoints to pass through the SSR function
+[[edge_functions]]
+  path = "/*"
+  function = "server"
+  excludedPath = "/.netlify/*"
