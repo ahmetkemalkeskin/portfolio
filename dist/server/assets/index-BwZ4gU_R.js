@@ -1,7 +1,7 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { d as Route } from "./router-CU1IVljr.js";
+import { d as Route } from "./router-CwsCXQi1.js";
 import "../server.js";
 import "node:async_hooks";
 import "h3-v2";

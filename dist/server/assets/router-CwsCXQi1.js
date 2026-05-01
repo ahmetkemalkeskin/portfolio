@@ -194,6 +194,9 @@ const Route$9 = createRootRoute({
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" }
+    ],
+    scripts: [
+      { src: "https://identity.netlify.com/v1/netlify-identity-widget.js" }
     ]
   }),
   shellComponent: RootDocument
@@ -205,7 +208,20 @@ function RootDocument({ children }) {
       /* @__PURE__ */ jsx(Nav, {}),
       /* @__PURE__ */ jsx("main", { style: { paddingTop: "64px" }, children }),
       /* @__PURE__ */ jsx(BackToTop, {}),
-      /* @__PURE__ */ jsx(Scripts, {})
+      /* @__PURE__ */ jsx(Scripts, {}),
+      /* @__PURE__ */ jsx("script", { dangerouslySetInnerHTML: {
+        __html: `
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.on("init", function(user) {
+                if (!user) {
+                  window.netlifyIdentity.on("login", function() {
+                    document.location.href = "/admin/";
+                  });
+                }
+              });
+            }
+          `
+      } })
     ] })
   ] });
 }
@@ -233,7 +249,7 @@ var createSsrRpc = (functionId) => {
     [TSS_SERVER_FUNCTION]: true
   });
 };
-const $$splitComponentImporter$5 = () => import("./projects-DfTPVYvp.js");
+const $$splitComponentImporter$5 = () => import("./projects-CpD1lirz.js");
 const getProjectsData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("6ce7ed10848c58e7a3195cec59648d3ebb1e3149c2e9e376844395d9dc2e8dcc"));
@@ -241,7 +257,7 @@ const Route$5 = createFileRoute("/projects")({
   loader: () => getProjectsData(),
   component: lazyRouteComponent($$splitComponentImporter$5, "component")
 });
-const $$splitComponentImporter$4 = () => import("./experience-svMBXfTu.js");
+const $$splitComponentImporter$4 = () => import("./experience-Bhbefqpq.js");
 const getExperienceData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("0850288abaaf8cd9ce1d691cdb532a1830740c7c49fd42f77e60717d4b74ab35"));
@@ -249,7 +265,7 @@ const Route$4 = createFileRoute("/experience")({
   loader: () => getExperienceData(),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./contact-Dfhtbhq6.js");
+const $$splitComponentImporter$3 = () => import("./contact-FGFC8QW4.js");
 const getContactData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("c9091b78a9b760de45715db1cc4443694157974684bac3bd1835bf1e1335e18c"));
@@ -257,7 +273,7 @@ const Route$3 = createFileRoute("/contact")({
   loader: () => getContactData(),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./about-C5xBYLPy.js");
+const $$splitComponentImporter$2 = () => import("./about-Be_jyGmR.js");
 const getAboutData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("fc10383af2b87974a109858b99bbb5f34ef6da7644fced3476f483b7a1a90953"));
@@ -265,7 +281,7 @@ const Route$2 = createFileRoute("/about")({
   loader: () => getAboutData(),
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./index-OuFzc4tI.js");
+const $$splitComponentImporter$1 = () => import("./index-BwZ4gU_R.js");
 const getHomeData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("e5d3f5d948391b170b648653d55968324eb90a864ee693154a5ada87efb58755"));
@@ -273,7 +289,7 @@ const Route$1 = createFileRoute("/")({
   loader: () => getHomeData(),
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./_slug-C1OVWxfu.js");
+const $$splitComponentImporter = () => import("./_slug-BVl64eaY.js");
 const Route = createFileRoute("/blog/$slug")({
   component: lazyRouteComponent($$splitComponentImporter, "component")
 });

@@ -1,7 +1,7 @@
 import { jsx, jsxs } from "react/jsx-runtime";
 import { useState, useRef, useEffect } from "react";
 import { u as useEditMode } from "./useEditMode-D4mVJXwr.js";
-import { b as Route } from "./router-CU1IVljr.js";
+import { b as Route } from "./router-CwsCXQi1.js";
 import "@tanstack/react-router";
 import "../server.js";
 import "node:async_hooks";
