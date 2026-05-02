@@ -1,7 +1,7 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
-import { d as Route } from "./router-CwsCXQi1.js";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { e as Route } from "./router-BwW8mIE7.js";
 import "../server.js";
 import "node:async_hooks";
 import "h3-v2";
@@ -24,31 +24,6 @@ function useFadeIn(dep) {
   }, [dep]);
   return ref;
 }
-const defaultQuickSkills = [{
-  name: "Blender",
-  icon: "🎨"
-}, {
-  name: "Unity",
-  icon: "🎮"
-}, {
-  name: "C#",
-  icon: "💻"
-}, {
-  name: "3D Modeling",
-  icon: "🗿"
-}, {
-  name: "Texturing",
-  icon: "🖌️"
-}, {
-  name: "Lighting",
-  icon: "💡"
-}, {
-  name: "Game Design",
-  icon: "🕹️"
-}, {
-  name: "Animation",
-  icon: "🎬"
-}];
 function isImageIcon(icon) {
   return icon.startsWith("data:image/") || icon.startsWith("http://") || icon.startsWith("https://");
 }
@@ -76,76 +51,17 @@ function normalizeImageIndex(index, total) {
   if (total <= 0) return 0;
   return (index % total + total) % total;
 }
-function rotateHomeProjectCover(project, direction) {
-  const cover = project.coverImage ?? "";
-  const gallery = [...project.galleryImages ?? []];
-  const total = getProjectImages(project).length;
-  const nextIndex = normalizeImageIndex((project.currentImageIndex ?? 0) + direction, total);
-  if (!cover && gallery.length === 0) return project;
-  if (direction === 1) {
-    if (gallery.length === 0) return project;
-    const [nextCover2, ...rest] = gallery;
-    return {
-      ...project,
-      coverImage: nextCover2,
-      galleryImages: cover ? [...rest, cover] : rest,
-      currentImageIndex: nextIndex
-    };
-  }
-  if (gallery.length === 0) return project;
-  const nextCover = gallery[gallery.length - 1];
-  const withoutLast = gallery.slice(0, -1);
-  return {
-    ...project,
-    coverImage: nextCover,
-    galleryImages: cover ? [cover, ...withoutLast] : withoutLast,
-    currentImageIndex: nextIndex
-  };
-}
-function loadQuickSkillsFromStorage() {
-  try {
-    const raw = localStorage.getItem("portfolio.skills");
-    if (!raw) return defaultQuickSkills;
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return defaultQuickSkills;
-    const normalized = parsed.filter((item) => item?.showOnHome ?? true).map((item) => ({
-      name: item?.name?.trim() ?? "",
-      icon: item?.icon?.trim() || "✨"
-    })).filter((item) => Boolean(item.name));
-    return normalized;
-  } catch {
-    return defaultQuickSkills;
-  }
-}
-function loadProjectsFromStorage(fallback) {
-  try {
-    const raw = localStorage.getItem("portfolio.projects");
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return fallback;
-    const normalized = parsed.map((item, index) => ({
-      id: item?.id ?? `local-${index}`,
-      title: item?.title?.trim() ?? "",
-      description: item?.description?.trim() ?? "",
-      tags: Array.isArray(item?.tags) ? item.tags.filter(Boolean) : [],
-      category: item?.category,
-      coverImage: item?.coverImage || item?.image || item?.galleryImages?.[0] || toThumbnailUrl(item?.youtubeUrl),
-      galleryImages: Array.isArray(item?.galleryImages) ? item.galleryImages.filter(Boolean) : [],
-      currentImageIndex: normalizeImageIndex(item?.currentImageIndex ?? 0, [item?.coverImage, ...item?.galleryImages ?? []].filter(Boolean).length)
-    })).filter((item) => item.title || item.description || item.coverImage);
-    return normalized.length ? normalized.slice(0, 6) : [];
-  } catch {
-    return fallback;
-  }
-}
 function HomePage() {
   const {
     featured,
-    settings
+    settings,
+    skillCategories
   } = Route.useLoaderData();
   const pageRef = useFadeIn();
-  const [quickSkills, setQuickSkills] = useState(defaultQuickSkills);
-  const [featuredProjects, setFeaturedProjects] = useState(featured.map((project, index) => ({
+  const [carouselById, setCarouselById] = useState({});
+  const siteName = settings?.siteName?.trim() || "Ahmet Kemal Keskin";
+  const siteTagline = settings?.siteTitle?.trim() || "3D Artist | Game Developer | Graphic Designer";
+  const featuredProjects = useMemo(() => featured.map((project, index) => ({
     id: `seed-${index}-${project._meta.path}`,
     title: project.title,
     description: project.description ?? "",
@@ -153,38 +69,41 @@ function HomePage() {
     category: project.category,
     coverImage: project.coverImage ?? project.image,
     galleryImages: project.gallery ?? [],
-    currentImageIndex: 0
-  })));
-  useEffect(() => {
-    const refresh = () => setQuickSkills(loadQuickSkillsFromStorage());
-    refresh();
-    window.addEventListener("portfolio:skills-updated", refresh);
-    window.addEventListener("focus", refresh);
-    return () => {
-      window.removeEventListener("portfolio:skills-updated", refresh);
-      window.removeEventListener("focus", refresh);
-    };
-  }, []);
-  useEffect(() => {
-    const fallback = featured.map((project, index) => ({
-      id: `seed-${index}-${project._meta.path}`,
-      title: project.title,
-      description: project.description ?? "",
-      tags: project.tags ?? [],
-      category: project.category,
-      coverImage: project.coverImage ?? project.image,
-      galleryImages: project.gallery ?? [],
-      currentImageIndex: 0
+    youtubeUrl: project.youtubeUrl
+  })), [featured]);
+  const quickSkills = useMemo(() => {
+    const flat = skillCategories.flatMap((cat) => (cat.items ?? []).map((item) => ({
+      name: item.name,
+      icon: "✨"
+    })));
+    const names = flat.map((s) => s.name);
+    const unique = [...new Set(names)].map((name) => ({
+      name,
+      icon: "✨"
     }));
-    const refreshProjects = () => setFeaturedProjects(loadProjectsFromStorage(fallback));
-    refreshProjects();
-    window.addEventListener("portfolio:projects-updated", refreshProjects);
-    window.addEventListener("focus", refreshProjects);
-    return () => {
-      window.removeEventListener("portfolio:projects-updated", refreshProjects);
-      window.removeEventListener("focus", refreshProjects);
-    };
-  }, [featured]);
+    return unique.slice(0, 16);
+  }, [skillCategories]);
+  const bumpCarousel = (id, direction) => {
+    const project = featuredProjects.find((p) => p.id === id);
+    if (!project) return;
+    const total = getProjectImages(project).length;
+    if (total <= 1) return;
+    setCarouselById((prev) => {
+      const cur = prev[id] ?? 0;
+      return {
+        ...prev,
+        [id]: normalizeImageIndex(cur + direction, total)
+      };
+    });
+  };
+  const displayImage = (project) => {
+    const imgs = getProjectImages(project);
+    if (!imgs.length) {
+      return project.youtubeUrl ? toThumbnailUrl(project.youtubeUrl) : void 0;
+    }
+    const idx = normalizeImageIndex(carouselById[project.id] ?? 0, imgs.length);
+    return imgs[idx];
+  };
   return /* @__PURE__ */ jsxs("div", { ref: pageRef, style: {
     minHeight: "100vh"
   }, children: [
@@ -227,9 +146,9 @@ function HomePage() {
           lineHeight: 1.08,
           marginBottom: "1.5rem"
         }, children: [
-          "Ahmet Kemal Keskin",
+          siteName,
           /* @__PURE__ */ jsx("br", {}),
-          /* @__PURE__ */ jsx("span", { className: "gradient-text", children: "3D Artist | Game Developer | Graphic Designer" })
+          /* @__PURE__ */ jsx("span", { className: "gradient-text", children: siteTagline })
         ] }),
         /* @__PURE__ */ jsx("p", { className: "hero-subtitle", style: {
           fontSize: "1.1rem",
@@ -293,115 +212,122 @@ function HomePage() {
         gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
         gap: "1.5rem",
         alignItems: "stretch"
-      }, children: featuredProjects.map((project, i) => /* @__PURE__ */ jsxs("div", { className: "glass-card fade-in home-project-card", style: {
-        overflow: "hidden"
-      }, children: [
-        /* @__PURE__ */ jsxs("div", { className: "img-placeholder", style: {
-          height: "200px",
-          borderRadius: "var(--radius) var(--radius) 0 0",
-          position: "relative"
+      }, children: featuredProjects.map((project) => {
+        const shown = displayImage(project);
+        const totalImages = getProjectImages(project).length;
+        const activeIndex = normalizeImageIndex(carouselById[project.id] ?? 0, Math.max(totalImages, 1));
+        return /* @__PURE__ */ jsxs("div", { className: "glass-card fade-in home-project-card", style: {
+          overflow: "hidden"
         }, children: [
-          project.coverImage ? /* @__PURE__ */ jsx("img", { src: project.coverImage, alt: project.title, style: {
-            width: "100%",
-            height: "100%",
-            objectFit: "cover"
-          } }) : /* @__PURE__ */ jsxs("span", { style: {
-            fontSize: "0.85rem"
+          /* @__PURE__ */ jsxs("div", { className: "img-placeholder", style: {
+            height: "200px",
+            borderRadius: "var(--radius) var(--radius) 0 0",
+            position: "relative"
           }, children: [
-            "📸 ",
-            project.title
-          ] }),
-          getProjectImages(project).length > 1 && /* @__PURE__ */ jsxs(Fragment, { children: [
-            /* @__PURE__ */ jsxs("div", { style: {
-              position: "absolute",
-              left: "50%",
-              top: "0.55rem",
-              transform: "translateX(-50%)",
-              padding: "0.2rem 0.5rem",
-              borderRadius: "999px",
-              border: "1px solid rgba(255,255,255,0.2)",
-              background: "rgba(0,0,0,0.55)",
-              color: "#e2e8f0",
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              pointerEvents: "none"
+            shown ? /* @__PURE__ */ jsx("img", { src: shown, alt: project.title, style: {
+              width: "100%",
+              height: "100%",
+              objectFit: "cover"
+            } }) : /* @__PURE__ */ jsxs("span", { style: {
+              fontSize: "0.85rem"
             }, children: [
-              normalizeImageIndex(project.currentImageIndex ?? 0, getProjectImages(project).length) + 1,
-              " / ",
-              getProjectImages(project).length
+              "📸 ",
+              project.title
             ] }),
-            /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => {
-              e.stopPropagation();
-              setFeaturedProjects((prev) => prev.map((p) => p.id === project.id ? rotateHomeProjectCover(p, -1) : p));
-            }, style: {
-              position: "absolute",
-              left: "0.7rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "34px",
-              height: "34px",
-              borderRadius: "999px",
-              border: "1px solid rgba(255,255,255,0.2)",
-              background: "rgba(0,0,0,0.55)",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: "1.05rem",
-              lineHeight: 1
-            }, children: "‹" }),
-            /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => {
-              e.stopPropagation();
-              setFeaturedProjects((prev) => prev.map((p) => p.id === project.id ? rotateHomeProjectCover(p, 1) : p));
-            }, style: {
-              position: "absolute",
-              right: "0.7rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "34px",
-              height: "34px",
-              borderRadius: "999px",
-              border: "1px solid rgba(255,255,255,0.2)",
-              background: "rgba(0,0,0,0.55)",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: "1.05rem",
-              lineHeight: 1
-            }, children: "›" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxs("div", { style: {
-          padding: "1.5rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.7rem",
-          minHeight: "170px"
-        }, children: [
-          project.category && /* @__PURE__ */ jsx("span", { className: "tag tag-purple", style: {
-            marginBottom: "0.6rem",
-            display: "inline-block"
-          }, children: project.category }),
-          /* @__PURE__ */ jsx("h3", { style: {
-            fontSize: "1.1rem",
-            fontWeight: 600,
-            margin: 0,
-            color: "var(--text-primary)"
-          }, children: project.title }),
-          /* @__PURE__ */ jsxs("p", { style: {
-            fontSize: "0.875rem",
-            color: "var(--text-secondary)",
-            margin: 0,
-            lineHeight: 1.6
-          }, children: [
-            project.description?.slice(0, 110),
-            "…"
+            totalImages > 1 && /* @__PURE__ */ jsxs(Fragment, { children: [
+              /* @__PURE__ */ jsxs("div", { style: {
+                position: "absolute",
+                left: "50%",
+                top: "0.55rem",
+                transform: "translateX(-50%)",
+                padding: "0.2rem 0.5rem",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(0,0,0,0.55)",
+                color: "#e2e8f0",
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                pointerEvents: "none"
+              }, children: [
+                activeIndex + 1,
+                " ",
+                "/",
+                " ",
+                totalImages
+              ] }),
+              /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => {
+                e.stopPropagation();
+                bumpCarousel(project.id, -1);
+              }, style: {
+                position: "absolute",
+                left: "0.7rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "34px",
+                height: "34px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(0,0,0,0.55)",
+                color: "#fff",
+                cursor: "pointer",
+                fontSize: "1.05rem",
+                lineHeight: 1
+              }, children: "‹" }),
+              /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => {
+                e.stopPropagation();
+                bumpCarousel(project.id, 1);
+              }, style: {
+                position: "absolute",
+                right: "0.7rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "34px",
+                height: "34px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(0,0,0,0.55)",
+                color: "#fff",
+                cursor: "pointer",
+                fontSize: "1.05rem",
+                lineHeight: 1
+              }, children: "›" })
+            ] })
           ] }),
-          /* @__PURE__ */ jsx("div", { style: {
+          /* @__PURE__ */ jsxs("div", { style: {
+            padding: "1.5rem",
             display: "flex",
-            flexWrap: "wrap",
-            gap: "0.4rem",
-            marginTop: "auto"
-          }, children: project.tags?.slice(0, 3).map((tag) => /* @__PURE__ */ jsx("span", { className: "tag", children: tag }, tag)) })
-        ] })
-      ] }, project.id)) }),
+            flexDirection: "column",
+            gap: "0.7rem",
+            minHeight: "170px"
+          }, children: [
+            project.category && /* @__PURE__ */ jsx("span", { className: "tag tag-purple", style: {
+              marginBottom: "0.6rem",
+              display: "inline-block"
+            }, children: project.category }),
+            /* @__PURE__ */ jsx("h3", { style: {
+              fontSize: "1.1rem",
+              fontWeight: 600,
+              margin: 0,
+              color: "var(--text-primary)"
+            }, children: project.title }),
+            /* @__PURE__ */ jsxs("p", { style: {
+              fontSize: "0.875rem",
+              color: "var(--text-secondary)",
+              margin: 0,
+              lineHeight: 1.6
+            }, children: [
+              project.description?.slice(0, 110),
+              "…"
+            ] }),
+            /* @__PURE__ */ jsx("div", { style: {
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.4rem",
+              marginTop: "auto"
+            }, children: project.tags?.slice(0, 3).map((tag) => /* @__PURE__ */ jsx("span", { className: "tag", children: tag }, tag)) })
+          ] })
+        ] }, project.id);
+      }) }),
       /* @__PURE__ */ jsx("div", { style: {
         textAlign: "center",
         marginTop: "3rem"

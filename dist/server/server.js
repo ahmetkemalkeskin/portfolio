@@ -73,7 +73,7 @@ function getResponse() {
 }
 var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 async function getStartManifest(matchedRoutes) {
-  const { tsrStartManifest } = await import("./assets/_tanstack-start-manifest_v-_STVNfW3.js");
+  const { tsrStartManifest } = await import("./assets/_tanstack-start-manifest_v-qnC8uSC4.js");
   const startManifest = tsrStartManifest();
   const rootRoute = startManifest.routes[rootRouteId] = startManifest.routes[rootRouteId] || {};
   rootRoute.assets = rootRoute.assets || [];
@@ -98,25 +98,29 @@ async function getStartManifest(matchedRoutes) {
   };
 }
 const manifest = {
-  "6ce7ed10848c58e7a3195cec59648d3ebb1e3149c2e9e376844395d9dc2e8dcc": {
-    functionName: "getProjectsData_createServerFn_handler",
-    importer: () => import("./assets/projects-XvVSpeDo.js")
+  "fe191397dc25ac54e32446ba2f3d743f60a311badc0d68469ca31d972c794d71": {
+    functionName: "getSkillsData_createServerFn_handler",
+    importer: () => import("./assets/skills-9QG6wPCv.js")
   },
   "0850288abaaf8cd9ce1d691cdb532a1830740c7c49fd42f77e60717d4b74ab35": {
     functionName: "getExperienceData_createServerFn_handler",
     importer: () => import("./assets/experience-CZMvuzuO.js")
   },
+  "6ce7ed10848c58e7a3195cec59648d3ebb1e3149c2e9e376844395d9dc2e8dcc": {
+    functionName: "getProjectsData_createServerFn_handler",
+    importer: () => import("./assets/projects-XvVSpeDo.js")
+  },
   "c9091b78a9b760de45715db1cc4443694157974684bac3bd1835bf1e1335e18c": {
     functionName: "getContactData_createServerFn_handler",
     importer: () => import("./assets/contact-CTNsZUEb.js")
   },
-  "e5d3f5d948391b170b648653d55968324eb90a864ee693154a5ada87efb58755": {
-    functionName: "getHomeData_createServerFn_handler",
-    importer: () => import("./assets/index-Djeotbtz.js")
-  },
   "fc10383af2b87974a109858b99bbb5f34ef6da7644fced3476f483b7a1a90953": {
     functionName: "getAboutData_createServerFn_handler",
-    importer: () => import("./assets/about-B2UP9T0y.js")
+    importer: () => import("./assets/about-BYlmnVEV.js")
+  },
+  "e5d3f5d948391b170b648653d55968324eb90a864ee693154a5ada87efb58755": {
+    functionName: "getHomeData_createServerFn_handler",
+    importer: () => import("./assets/index-DD32A3Mk.js")
   }
 };
 async function getServerFnById(id, access) {
@@ -871,7 +875,7 @@ var baseManifestPromise;
 var cachedFinalManifestPromise;
 async function loadEntries() {
   const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-    import("./assets/router-CwsCXQi1.js").then((n) => n.r),
+    import("./assets/router-BwW8mIE7.js").then((n) => n.r),
     import("./assets/start-HYkvq4Ni.js"),
     import("./assets/__23tanstack-start-plugin-adapters-Cwee5PKy.js")
   ]);

@@ -1,5 +1,6 @@
 import { c as createServerRpc } from "./createServerRpc-D_-6bKnO.js";
 import { a as allProjects } from "./allProjects-B1V7QG9B.js";
+import { a as allSkillCategories } from "./allSkillCategories-BX2iTg5W.js";
 import { a as allSiteSettings } from "./allSiteSettings-G6SLa_l5.js";
 import { c as createServerFn } from "../server.js";
 import "node:async_hooks";
@@ -23,9 +24,11 @@ const getHomeData = createServerFn({
 }).handler(getHomeData_createServerFn_handler, async () => {
   const featured = allProjects.filter((p) => p.featured).sort((a, b) => a.order - b.order).slice(0, 6);
   const settings = allSiteSettings[0] ?? null;
+  const skillCategories = [...allSkillCategories].sort((a, b) => a.order - b.order);
   return {
     featured,
-    settings
+    settings,
+    skillCategories
   };
 });
 export {

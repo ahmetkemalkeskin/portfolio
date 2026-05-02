@@ -229,14 +229,6 @@ const $$splitComponentImporter$8 = () => import("./works-Dcd9AFB5.js");
 const Route$8 = createFileRoute("/works")({
   component: lazyRouteComponent($$splitComponentImporter$8, "component")
 });
-const $$splitComponentImporter$7 = () => import("./skills-CrEtDkPV.js");
-const Route$7 = createFileRoute("/skills")({
-  component: lazyRouteComponent($$splitComponentImporter$7, "component")
-});
-const $$splitComponentImporter$6 = () => import("./resume-BHTb6hq8.js");
-const Route$6 = createFileRoute("/resume")({
-  component: lazyRouteComponent($$splitComponentImporter$6, "component")
-});
 var createSsrRpc = (functionId) => {
   const url = "/_serverFn/" + functionId;
   const serverFnMeta = { id: functionId };
@@ -249,7 +241,19 @@ var createSsrRpc = (functionId) => {
     [TSS_SERVER_FUNCTION]: true
   });
 };
-const $$splitComponentImporter$5 = () => import("./projects-CpD1lirz.js");
+const $$splitComponentImporter$7 = () => import("./skills-DFvjeuc2.js");
+const getSkillsData = createServerFn({
+  method: "GET"
+}).handler(createSsrRpc("fe191397dc25ac54e32446ba2f3d743f60a311badc0d68469ca31d972c794d71"));
+const Route$7 = createFileRoute("/skills")({
+  loader: () => getSkillsData(),
+  component: lazyRouteComponent($$splitComponentImporter$7, "component")
+});
+const $$splitComponentImporter$6 = () => import("./resume-BHTb6hq8.js");
+const Route$6 = createFileRoute("/resume")({
+  component: lazyRouteComponent($$splitComponentImporter$6, "component")
+});
+const $$splitComponentImporter$5 = () => import("./projects-CQI_0XLT.js");
 const getProjectsData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("6ce7ed10848c58e7a3195cec59648d3ebb1e3149c2e9e376844395d9dc2e8dcc"));
@@ -257,7 +261,7 @@ const Route$5 = createFileRoute("/projects")({
   loader: () => getProjectsData(),
   component: lazyRouteComponent($$splitComponentImporter$5, "component")
 });
-const $$splitComponentImporter$4 = () => import("./experience-Bhbefqpq.js");
+const $$splitComponentImporter$4 = () => import("./experience-C_sJy4Lw.js");
 const getExperienceData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("0850288abaaf8cd9ce1d691cdb532a1830740c7c49fd42f77e60717d4b74ab35"));
@@ -265,7 +269,7 @@ const Route$4 = createFileRoute("/experience")({
   loader: () => getExperienceData(),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./contact-FGFC8QW4.js");
+const $$splitComponentImporter$3 = () => import("./contact-Cg2xUBRk.js");
 const getContactData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("c9091b78a9b760de45715db1cc4443694157974684bac3bd1835bf1e1335e18c"));
@@ -273,7 +277,7 @@ const Route$3 = createFileRoute("/contact")({
   loader: () => getContactData(),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./about-Be_jyGmR.js");
+const $$splitComponentImporter$2 = () => import("./about-zAH486z2.js");
 const getAboutData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("fc10383af2b87974a109858b99bbb5f34ef6da7644fced3476f483b7a1a90953"));
@@ -281,7 +285,7 @@ const Route$2 = createFileRoute("/about")({
   loader: () => getAboutData(),
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./index-BwZ4gU_R.js");
+const $$splitComponentImporter$1 = () => import("./index-BCfXUMf9.js");
 const getHomeData = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("e5d3f5d948391b170b648653d55968324eb90a864ee693154a5ada87efb58755"));
@@ -289,7 +293,7 @@ const Route$1 = createFileRoute("/")({
   loader: () => getHomeData(),
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./_slug-BVl64eaY.js");
+const $$splitComponentImporter = () => import("./_slug-DVEkVCRT.js");
 const Route = createFileRoute("/blog/$slug")({
   component: lazyRouteComponent($$splitComponentImporter, "component")
 });
@@ -363,11 +367,12 @@ const router = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProper
   getRouter
 }, Symbol.toStringTag, { value: "Module" }));
 export {
-  Route$5 as R,
-  Route$4 as a,
-  Route$3 as b,
-  Route$2 as c,
-  Route$1 as d,
-  Route as e,
+  Route$7 as R,
+  Route$5 as a,
+  Route$4 as b,
+  Route$3 as c,
+  Route$2 as d,
+  Route$1 as e,
+  Route as f,
   router as r
 };

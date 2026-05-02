@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { allSiteSettings } from 'content-collections'
 import { useEffect, useRef, useState } from 'react'
-import { useEditMode } from '../hooks/useEditMode'
 
 const getContactData = createServerFn({ method: 'GET' }).handler(async () => {
   const settings = allSiteSettings[0] ?? null
@@ -22,18 +21,16 @@ function encode(data: Record<string, string>) {
 
 function ContactPage() {
   const { settings } = Route.useLoaderData()
-  const { toggleEditMode } = useEditMode()
   const [fields, setFields] = useState({ name: '', email: '', message: '' })
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const ref = useRef<HTMLDivElement>(null)
-  const secretTap = useRef({ count: 0, lastAt: 0 })
 
   useEffect(() => {
     if (!ref.current) return
     const els = ref.current.querySelectorAll<HTMLElement>('.fade-in')
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('visible')),
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     )
     els.forEach((el) => io.observe(el))
     return () => io.disconnect()
@@ -75,28 +72,16 @@ function ContactPage() {
     { label: 'LinkedIn', url: settings?.linkedin, icon: '💼' },
   ].filter((s) => s.url)
 
-  const handleSecretToggle = () => {
-    const now = Date.now()
-    const withinWindow = now - secretTap.current.lastAt < 900
-    const nextCount = withinWindow ? secretTap.current.count + 1 : 1
-    secretTap.current = { count: nextCount, lastAt: now }
-    if (nextCount >= 3) {
-      toggleEditMode()
-      secretTap.current = { count: 0, lastAt: 0 }
-    }
-  }
-
   return (
     <div ref={ref} style={{ minHeight: '100vh', padding: '5rem 1.5rem' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         <div className="fade-in" style={{ textAlign: 'center', marginBottom: '4rem' }}>
           <p style={{ color: 'var(--accent-cyan)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Contact</p>
-          <h1 className="section-title" onClick={handleSecretToggle}>Get in Touch</h1>
+          <h1 className="section-title">Get in Touch</h1>
           <p className="section-subtitle">Have a project idea? Share the details with me.</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
-          {/* Contact info */}
           <div>
             <div className="glass-card fade-in" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--accent-cyan)', marginBottom: '1.5rem' }}>Contact Info</h3>
@@ -118,7 +103,6 @@ function ContactPage() {
               </div>
             </div>
 
-            {/* Socials */}
             {socials.length > 0 && (
               <div className="glass-card fade-in fade-in-delay-1" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--accent-cyan)', marginBottom: '1.25rem' }}>Social Media</h3>
@@ -132,7 +116,6 @@ function ContactPage() {
               </div>
             )}
 
-            {/* Maps embed placeholder */}
             <div className="glass-card fade-in fade-in-delay-2" style={{ overflow: 'hidden' }}>
               {settings?.mapsEmbed ? (
                 <iframe src={settings.mapsEmbed} style={{ width: '100%', height: '220px', border: 'none' }} title="Location" />
@@ -144,7 +127,6 @@ function ContactPage() {
             </div>
           </div>
 
-          {/* Form */}
           <div className="glass-card fade-in fade-in-delay-1" style={{ padding: '2.5rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '2rem' }}>Send a Message</h3>
 
@@ -153,12 +135,11 @@ function ContactPage() {
                 <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
                 <h4 style={{ marginBottom: '0.5rem' }}>Message sent!</h4>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Thanks for reaching out. I will get back to you soon.</p>
-                <button onClick={() => setStatus('idle')} className="btn-outline" style={{ marginTop: '1.5rem' }}>Send another</button>
+                <button onClick={() => setStatus('idle')} type="button" className="btn-outline" style={{ marginTop: '1.5rem' }}>Send another</button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <input type="hidden" name="form-name" value="contact" />
-                {/* Honeypot */}
                 <input type="text" name="bot-field" style={{ display: 'none' }} aria-hidden="true" />
 
                 <div>

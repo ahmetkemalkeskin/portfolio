@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { allProjects, allSiteSettings } from 'content-collections'
-import { useEffect, useRef, useState } from 'react'
+import { allProjects, allSiteSettings, allSkillCategories } from 'content-collections'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const getHomeData = createServerFn({ method: 'GET' }).handler(async () => {
   const featured = allProjects
@@ -9,7 +9,8 @@ const getHomeData = createServerFn({ method: 'GET' }).handler(async () => {
     .sort((a, b) => a.order - b.order)
     .slice(0, 6)
   const settings = allSiteSettings[0] ?? null
-  return { featured, settings }
+  const skillCategories = [...allSkillCategories].sort((a, b) => a.order - b.order)
+  return { featured, settings, skillCategories }
 })
 
 export const Route = createFileRoute('/')({
@@ -24,32 +25,13 @@ function useFadeIn(dep?: unknown) {
     const els = ref.current.querySelectorAll<HTMLElement>('.fade-in')
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('visible')),
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     )
     els.forEach((el) => io.observe(el))
     return () => io.disconnect()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dep])
   return ref
-}
-
-const defaultQuickSkills = [
-  { name: 'Blender', icon: '🎨' },
-  { name: 'Unity', icon: '🎮' },
-  { name: 'C#', icon: '💻' },
-  { name: '3D Modeling', icon: '🗿' },
-  { name: 'Texturing', icon: '🖌️' },
-  { name: 'Lighting', icon: '💡' },
-  { name: 'Game Design', icon: '🕹️' },
-  { name: 'Animation', icon: '🎬' },
-]
-
-type StoredSkill = {
-  id: string
-  name: string
-  icon?: string
-  showOnHome?: boolean
-  level: 'Beginner' | 'Normal' | 'Good' | 'Very Good' | 'Expert'
 }
 
 type HomeProject = {
@@ -59,10 +41,8 @@ type HomeProject = {
   tags: string[]
   category?: string
   coverImage?: string
-  image?: string
-  youtubeUrl?: string
   galleryImages?: string[]
-  currentImageIndex?: number
+  youtubeUrl?: string
 }
 
 function isImageIcon(icon: string) {
@@ -97,127 +77,61 @@ function normalizeImageIndex(index: number, total: number) {
   return ((index % total) + total) % total
 }
 
-function rotateHomeProjectCover(project: HomeProject, direction: 1 | -1): HomeProject {
-  const cover = project.coverImage ?? ''
-  const gallery = [...(project.galleryImages ?? [])]
-  const total = getProjectImages(project).length
-  const nextIndex = normalizeImageIndex((project.currentImageIndex ?? 0) + direction, total)
-  if (!cover && gallery.length === 0) return project
-
-  if (direction === 1) {
-    if (gallery.length === 0) return project
-    const [nextCover, ...rest] = gallery
-    return {
-      ...project,
-      coverImage: nextCover,
-      galleryImages: cover ? [...rest, cover] : rest,
-      currentImageIndex: nextIndex,
-    }
-  }
-
-  if (gallery.length === 0) return project
-  const nextCover = gallery[gallery.length - 1]
-  const withoutLast = gallery.slice(0, -1)
-  return {
-    ...project,
-    coverImage: nextCover,
-    galleryImages: cover ? [cover, ...withoutLast] : withoutLast,
-    currentImageIndex: nextIndex,
-  }
-}
-
-function loadQuickSkillsFromStorage() {
-  try {
-    const raw = localStorage.getItem('portfolio.skills')
-    if (!raw) return defaultQuickSkills
-    const parsed = JSON.parse(raw) as StoredSkill[]
-    if (!Array.isArray(parsed)) return defaultQuickSkills
-    const normalized = parsed
-      .filter((item) => item?.showOnHome ?? true)
-      .map((item) => ({ name: item?.name?.trim() ?? '', icon: item?.icon?.trim() || '✨' }))
-      .filter((item) => Boolean(item.name))
-    return normalized
-  } catch {
-    return defaultQuickSkills
-  }
-}
-
-function loadProjectsFromStorage(fallback: HomeProject[]) {
-  try {
-    const raw = localStorage.getItem('portfolio.projects')
-    if (!raw) return fallback
-    const parsed = JSON.parse(raw) as HomeProject[]
-    if (!Array.isArray(parsed)) return fallback
-    const normalized = parsed
-      .map((item, index) => ({
-        id: item?.id ?? `local-${index}`,
-        title: item?.title?.trim() ?? '',
-        description: item?.description?.trim() ?? '',
-        tags: Array.isArray(item?.tags) ? item.tags.filter(Boolean) : [],
-        category: item?.category,
-        coverImage: item?.coverImage || item?.image || item?.galleryImages?.[0] || toThumbnailUrl(item?.youtubeUrl),
-        galleryImages: Array.isArray(item?.galleryImages) ? item.galleryImages.filter(Boolean) : [],
-        currentImageIndex: normalizeImageIndex(item?.currentImageIndex ?? 0, [item?.coverImage, ...(item?.galleryImages ?? [])].filter(Boolean).length),
-      }))
-      .filter((item) => item.title || item.description || item.coverImage)
-    return normalized.length ? normalized.slice(0, 6) : []
-  } catch {
-    return fallback
-  }
-}
-
 function HomePage() {
-  const { featured, settings } = Route.useLoaderData()
+  const { featured, settings, skillCategories } = Route.useLoaderData()
   const pageRef = useFadeIn()
-  const [quickSkills, setQuickSkills] = useState(defaultQuickSkills)
-  const [featuredProjects, setFeaturedProjects] = useState<HomeProject[]>(
-    featured.map((project, index) => ({
-      id: `seed-${index}-${project._meta.path}`,
-      title: project.title,
-      description: project.description ?? '',
-      tags: project.tags ?? [],
-      category: project.category,
-      coverImage: project.coverImage ?? project.image,
-      galleryImages: project.gallery ?? [],
-      currentImageIndex: 0,
-    })),
+  const [carouselById, setCarouselById] = useState<Record<string, number>>({})
+
+  const siteName = settings?.siteName?.trim() || 'Ahmet Kemal Keskin'
+  const siteTagline = settings?.siteTitle?.trim() || '3D Artist | Game Developer | Graphic Designer'
+
+  const featuredProjects = useMemo<HomeProject[]>(
+    () =>
+      featured.map((project, index) => ({
+        id: `seed-${index}-${project._meta.path}`,
+        title: project.title,
+        description: project.description ?? '',
+        tags: project.tags ?? [],
+        category: project.category,
+        coverImage: project.coverImage ?? project.image,
+        galleryImages: project.gallery ?? [],
+        youtubeUrl: project.youtubeUrl,
+      })),
+    [featured],
   )
 
-  useEffect(() => {
-    const refresh = () => setQuickSkills(loadQuickSkillsFromStorage())
-    refresh()
-    window.addEventListener('portfolio:skills-updated', refresh)
-    window.addEventListener('focus', refresh)
-    return () => {
-      window.removeEventListener('portfolio:skills-updated', refresh)
-      window.removeEventListener('focus', refresh)
-    }
-  }, [])
+  const quickSkills = useMemo(() => {
+    const flat = skillCategories.flatMap((cat) => (cat.items ?? []).map((item) => ({
+      name: item.name,
+      icon: '✨' as const,
+    })))
+    const names = flat.map((s) => s.name)
+    const unique = [...new Set(names)].map((name) => ({ name, icon: '✨' as string }))
+    return unique.slice(0, 16)
+  }, [skillCategories])
 
-  useEffect(() => {
-    const fallback = featured.map((project, index) => ({
-      id: `seed-${index}-${project._meta.path}`,
-      title: project.title,
-      description: project.description ?? '',
-      tags: project.tags ?? [],
-      category: project.category,
-      coverImage: project.coverImage ?? project.image,
-      galleryImages: project.gallery ?? [],
-      currentImageIndex: 0,
-    }))
-    const refreshProjects = () => setFeaturedProjects(loadProjectsFromStorage(fallback))
-    refreshProjects()
-    window.addEventListener('portfolio:projects-updated', refreshProjects)
-    window.addEventListener('focus', refreshProjects)
-    return () => {
-      window.removeEventListener('portfolio:projects-updated', refreshProjects)
-      window.removeEventListener('focus', refreshProjects)
+  const bumpCarousel = (id: string, direction: 1 | -1) => {
+    const project = featuredProjects.find((p) => p.id === id)
+    if (!project) return
+    const total = getProjectImages(project).length
+    if (total <= 1) return
+    setCarouselById((prev) => {
+      const cur = prev[id] ?? 0
+      return { ...prev, [id]: normalizeImageIndex(cur + direction, total) }
+    })
+  }
+
+  const displayImage = (project: HomeProject) => {
+    const imgs = getProjectImages(project)
+    if (!imgs.length) {
+      return project.youtubeUrl ? toThumbnailUrl(project.youtubeUrl) : undefined
     }
-  }, [featured])
+    const idx = normalizeImageIndex(carouselById[project.id] ?? 0, imgs.length)
+    return imgs[idx]
+  }
 
   return (
     <div ref={pageRef} style={{ minHeight: '100vh' }}>
-      {/* ── Hero ── */}
       <section
         style={{
           position: 'relative',
@@ -237,9 +151,9 @@ function HomePage() {
             Welcome to my portfolio
           </p>
           <h1 className="hero-title" style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', fontWeight: 700, lineHeight: 1.08, marginBottom: '1.5rem' }}>
-            Ahmet Kemal Keskin
+            {siteName}
             <br />
-            <span className="gradient-text">3D Artist | Game Developer | Graphic Designer</span>
+            <span className="gradient-text">{siteTagline}</span>
           </h1>
           <p className="hero-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: '560px', margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
             Creating immersive 3D worlds, games, and visual experiences with Blender & Unity
@@ -257,7 +171,6 @@ function HomePage() {
 
       <hr className="glow-line" />
 
-      {/* ── Featured Projects ── */}
       <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '6rem 1.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <p className="fade-in" style={{ color: 'var(--accent-cyan)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
@@ -268,72 +181,82 @@ function HomePage() {
         </div>
 
         <div className="home-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
-          {featuredProjects.map((project, i) => (
-            <div key={project.id} className="glass-card fade-in home-project-card" style={{ overflow: 'hidden' }}>
-              <div className="img-placeholder" style={{ height: '200px', borderRadius: 'var(--radius) var(--radius) 0 0', position: 'relative' }}>
-                {project.coverImage
-                  ? <img src={project.coverImage} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: '0.85rem' }}>📸 {project.title}</span>
-                }
-                {getProjectImages(project).length > 1 && (
-                  <>
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: '50%',
-                        top: '0.55rem',
-                        transform: 'translateX(-50%)',
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: '999px',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        background: 'rgba(0,0,0,0.55)',
-                        color: '#e2e8f0',
-                        fontSize: '0.7rem',
-                        fontWeight: 600,
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      {normalizeImageIndex(project.currentImageIndex ?? 0, getProjectImages(project).length) + 1} / {getProjectImages(project).length}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFeaturedProjects((prev) => prev.map((p) => (p.id === project.id ? rotateHomeProjectCover(p, -1) : p)))
-                      }}
-                      style={{ position: 'absolute', left: '0.7rem', top: '50%', transform: 'translateY(-50%)', width: '34px', height: '34px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', fontSize: '1.05rem', lineHeight: 1 }}
-                    >
-                      ‹
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFeaturedProjects((prev) => prev.map((p) => (p.id === project.id ? rotateHomeProjectCover(p, 1) : p)))
-                      }}
-                      style={{ position: 'absolute', right: '0.7rem', top: '50%', transform: 'translateY(-50%)', width: '34px', height: '34px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', fontSize: '1.05rem', lineHeight: 1 }}
-                    >
-                      ›
-                    </button>
-                  </>
-                )}
-              </div>
-              <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.7rem', minHeight: '170px' }}>
-                {project.category && (
-                  <span className="tag tag-purple" style={{ marginBottom: '0.6rem', display: 'inline-block' }}>{project.category}</span>
-                )}
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>{project.title}</h3>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
-                  {project.description?.slice(0, 110)}…
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: 'auto' }}>
-                  {project.tags?.slice(0, 3).map((tag) => (
-                    <span key={tag} className="tag">{tag}</span>
-                  ))}
+          {featuredProjects.map((project) => {
+            const shown = displayImage(project)
+            const totalImages = getProjectImages(project).length
+            const activeIndex = normalizeImageIndex(carouselById[project.id] ?? 0, Math.max(totalImages, 1))
+            return (
+              <div key={project.id} className="glass-card fade-in home-project-card" style={{ overflow: 'hidden' }}>
+                <div className="img-placeholder" style={{ height: '200px', borderRadius: 'var(--radius) var(--radius) 0 0', position: 'relative' }}>
+                  {shown ? (
+                    <img src={shown} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: '0.85rem' }}>📸 {project.title}</span>
+                  )}
+                  {totalImages > 1 && (
+                    <>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: '50%',
+                          top: '0.55rem',
+                          transform: 'translateX(-50%)',
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '999px',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          background: 'rgba(0,0,0,0.55)',
+                          color: '#e2e8f0',
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {activeIndex + 1}
+                        {' '}
+                        /
+                        {' '}
+                        {totalImages}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          bumpCarousel(project.id, -1)
+                        }}
+                        style={{ position: 'absolute', left: '0.7rem', top: '50%', transform: 'translateY(-50%)', width: '34px', height: '34px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', fontSize: '1.05rem', lineHeight: 1 }}
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          bumpCarousel(project.id, 1)
+                        }}
+                        style={{ position: 'absolute', right: '0.7rem', top: '50%', transform: 'translateY(-50%)', width: '34px', height: '34px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', fontSize: '1.05rem', lineHeight: 1 }}
+                      >
+                        ›
+                      </button>
+                    </>
+                  )}
+                </div>
+                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.7rem', minHeight: '170px' }}>
+                  {project.category && (
+                    <span className="tag tag-purple" style={{ marginBottom: '0.6rem', display: 'inline-block' }}>{project.category}</span>
+                  )}
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>{project.title}</h3>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                    {project.description?.slice(0, 110)}…
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: 'auto' }}>
+                    {project.tags?.slice(0, 3).map((tag) => (
+                      <span key={tag} className="tag">{tag}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '3rem' }}>
@@ -343,7 +266,6 @@ function HomePage() {
 
       <hr className="glow-line" />
 
-      {/* ── Quick Skills ── */}
       <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '6rem 1.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <p className="fade-in" style={{ color: 'var(--accent-cyan)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>

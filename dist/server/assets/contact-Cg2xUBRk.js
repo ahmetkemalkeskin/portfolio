@@ -1,7 +1,6 @@
 import { jsx, jsxs } from "react/jsx-runtime";
 import { useState, useRef, useEffect } from "react";
-import { u as useEditMode } from "./useEditMode-D4mVJXwr.js";
-import { b as Route } from "./router-CwsCXQi1.js";
+import { c as Route } from "./router-BwW8mIE7.js";
 import "@tanstack/react-router";
 import "../server.js";
 import "node:async_hooks";
@@ -19,9 +18,6 @@ function ContactPage() {
   const {
     settings
   } = Route.useLoaderData();
-  const {
-    toggleEditMode
-  } = useEditMode();
   const [fields, setFields] = useState({
     name: "",
     email: "",
@@ -29,10 +25,6 @@ function ContactPage() {
   });
   const [status, setStatus] = useState("idle");
   const ref = useRef(null);
-  const secretTap = useRef({
-    count: 0,
-    lastAt: 0
-  });
   useEffect(() => {
     if (!ref.current) return;
     const els = ref.current.querySelectorAll(".fade-in");
@@ -104,22 +96,6 @@ ${fields.message}`);
     url: settings?.linkedin,
     icon: "💼"
   }].filter((s) => s.url);
-  const handleSecretToggle = () => {
-    const now = Date.now();
-    const withinWindow = now - secretTap.current.lastAt < 900;
-    const nextCount = withinWindow ? secretTap.current.count + 1 : 1;
-    secretTap.current = {
-      count: nextCount,
-      lastAt: now
-    };
-    if (nextCount >= 3) {
-      toggleEditMode();
-      secretTap.current = {
-        count: 0,
-        lastAt: 0
-      };
-    }
-  };
   return /* @__PURE__ */ jsx("div", { ref, style: {
     minHeight: "100vh",
     padding: "5rem 1.5rem"
@@ -139,7 +115,7 @@ ${fields.message}`);
         textTransform: "uppercase",
         marginBottom: "0.5rem"
       }, children: "Contact" }),
-      /* @__PURE__ */ jsx("h1", { className: "section-title", onClick: handleSecretToggle, children: "Get in Touch" }),
+      /* @__PURE__ */ jsx("h1", { className: "section-title", children: "Get in Touch" }),
       /* @__PURE__ */ jsx("p", { className: "section-subtitle", children: "Have a project idea? Share the details with me." })
     ] }),
     /* @__PURE__ */ jsxs("div", { style: {
@@ -248,7 +224,7 @@ ${fields.message}`);
             color: "var(--text-secondary)",
             fontSize: "0.9rem"
           }, children: "Thanks for reaching out. I will get back to you soon." }),
-          /* @__PURE__ */ jsx("button", { onClick: () => setStatus("idle"), className: "btn-outline", style: {
+          /* @__PURE__ */ jsx("button", { onClick: () => setStatus("idle"), type: "button", className: "btn-outline", style: {
             marginTop: "1.5rem"
           }, children: "Send another" })
         ] }) : /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmit, style: {

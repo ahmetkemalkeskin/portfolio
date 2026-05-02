@@ -1,4 +1,5 @@
 import { c as createServerRpc } from "./createServerRpc-D_-6bKnO.js";
+import { a as allSiteSettings } from "./allSiteSettings-G6SLa_l5.js";
 import { c as createServerFn } from "../server.js";
 import "node:async_hooks";
 import "h3-v2";
@@ -40,8 +41,10 @@ const getAboutData = createServerFn({
   method: "GET"
 }).handler(getAboutData_createServerFn_handler, async () => {
   const about = allAbouts[0] ?? null;
+  const settings = allSiteSettings[0] ?? null;
   return {
-    about
+    about,
+    settings
   };
 });
 export {
